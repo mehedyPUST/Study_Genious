@@ -48,3 +48,5 @@ export async function getDb() {
   if (!db) db = createMockDb();
   return db;
 }
+
+export async function closeDb(): Promise<void> {}
