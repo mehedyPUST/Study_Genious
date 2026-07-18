@@ -102,18 +102,18 @@ export async function createPlan(data: Omit<Plan, '_id' | 'createdAt' | 'updated
     const db = await getDb();
     const now = new Date();
     const doc = { ...data, createdAt: now, updatedAt: now };
-    const result = await db.collection<Plan>('plans').insertOne(doc as any);
+    const result = await db.collection('plans').insertOne(doc as any);
     return { _id: result.insertedId, ...doc };
 }
 
 export async function updatePlan(planId: string, userId: string, data: Partial<Plan>) {
     const db = await getDb();
     const _id = new ObjectId(planId);
-    const plan = await db.collection<Plan>('plans').findOne({ _id });
+    const plan = await db.collection('plans').findOne({ _id });
     if (!plan) throw new AppError(404, 'Plan not found', 'NOT_FOUND');
     if (plan.userId.toString() !== userId) throw new AppError(403, 'Not authorized', 'FORBIDDEN');
 
-    const updated = await db.collection<Plan>('plans').findOneAndUpdate(
+    const updated = await db.collection('plans').findOneAndUpdate(
         { _id },
         { $set: { ...data, updatedAt: new Date() } },
         { returnDocument: 'after' }
@@ -132,28 +132,28 @@ export async function updatePlan(planId: string, userId: string, data: Partial<P
 export async function deletePlan(planId: string, userId: string) {
     const db = await getDb();
     const _id = new ObjectId(planId);
-    const plan = await db.collection<Plan>('plans').findOne({ _id });
+    const plan = await db.collection('plans').findOne({ _id });
     if (!plan) throw new AppError(404, 'Plan not found', 'NOT_FOUND');
     if (plan.userId.toString() !== userId) throw new AppError(403, 'Not authorized', 'FORBIDDEN');
 
-    await db.collection<Plan>('plans').deleteOne({ _id });
+    await db.collection('plans').deleteOne({ _id });
     // Also delete associated reviews
-    await db.collection<Review>('reviews').deleteMany({ planId: _id });
+    await db.collection('reviews').deleteMany({ planId: _id });
 }
 
 export async function getUserPlans(userId: string) {
     const db = await getDb();
-    return db.collection<Plan>('plans').find({ userId: new ObjectId(userId) }).sort({ createdAt: -1 }).toArray();
+    return db.collection('plans').find({ userId: new ObjectId(userId) }).sort({ createdAt: -1 }).toArray();
 }
 
 // Reviews
 export async function addReview(planId: string, userId: string, data: { rating: number; comment: string }) {
     const db = await getDb();
-    const plan = await db.collection<Plan>('plans').findOne({ _id: new ObjectId(planId) });
+    const plan = await db.collection('plans').findOne({ _id: new ObjectId(planId) });
     if (!plan) throw new AppError(404, 'Plan not found', 'NOT_FOUND');
 
     // Optional: one review per user per plan
-    const existing = await db.collection<Review>('reviews').findOne({
+    const existing = await db.collection('reviews').findOne({
         planId: new ObjectId(planId),
         userId: new ObjectId(userId),
     });
@@ -166,25 +166,25 @@ export async function addReview(planId: string, userId: string, data: { rating: 
         comment: data.comment,
         createdAt: new Date(),
     } as Review;
-    await db.collection<Review>('reviews').insertOne(doc);
+    await db.collection('reviews').insertOne(doc);
     return doc;
 }
 
 export async function getPlanReviews(planId: string, page: number = 1, limit: number = 10) {
     const db = await getDb();
     const filter = { planId: new ObjectId(planId) };
-    const total = await db.collection<Review>('reviews').countDocuments(filter);
-    const reviews = await db.collection<Review>('reviews').find(filter).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).toArray();
+    const total = await db.collection('reviews').countDocuments(filter);
+    const reviews = await db.collection('reviews').find(filter).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).toArray();
     return { reviews, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } };
 }
 
 export async function getRelatedPlans(planId: string, limit: number = 4) {
     const db = await getDb();
-    const plan = await db.collection<Plan>('plans').findOne({ _id: new ObjectId(planId) });
+    const plan = await db.collection('plans').findOne({ _id: new ObjectId(planId) });
     if (!plan) return [];
     // Find plans with same subject or difficulty, excluding current
     const related = await db
-        .collection<Plan>('plans')
+        .collection('plans')
         .find({
             _id: { $ne: plan._id },
             $or: [{ subject: plan.subject }, { difficulty: plan.difficulty }],

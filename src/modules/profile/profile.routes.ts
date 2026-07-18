@@ -12,7 +12,7 @@ const router = Router();
 router.get('/', authenticate, async (req, res, next) => {
     try {
         const db = await getDb();
-        const user = await db.collection<User>('users').findOne(
+        const user = await db.collection('users').findOne(
             { _id: new ObjectId((req as any).userId) },
             { projection: { passwordHash: 0 } }
         );
@@ -32,7 +32,7 @@ router.put('/', authenticate, async (req, res, next) => {
 
         // Check if email already taken by another user
         if (email) {
-            const existing = await db.collection<User>('users').findOne({
+            const existing = await db.collection('users').findOne({
                 email,
                 _id: { $ne: new ObjectId(userId) },
             });
@@ -44,12 +44,12 @@ router.put('/', authenticate, async (req, res, next) => {
         if (email) updateData.email = email;
         if (avatar !== undefined) updateData.avatar = avatar;
 
-        await db.collection<User>('users').updateOne(
+        await db.collection('users').updateOne(
             { _id: new ObjectId(userId) },
             { $set: updateData }
         );
 
-        const updatedUser = await db.collection<User>('users').findOne(
+        const updatedUser = await db.collection('users').findOne(
             { _id: new ObjectId(userId) },
             { projection: { passwordHash: 0 } }
         );
@@ -75,7 +75,7 @@ router.put('/password', authenticate, async (req, res, next) => {
             throw new AppError(400, 'New password must be at least 8 characters', 'WEAK_PASSWORD');
         }
 
-        const user = await db.collection<User>('users').findOne({ _id: new ObjectId(userId) });
+        const user = await db.collection('users').findOne({ _id: new ObjectId(userId) });
         if (!user || !user.passwordHash) {
             throw new AppError(400, 'Cannot change password for social login accounts', 'SOCIAL_ACCOUNT');
         }
@@ -86,7 +86,7 @@ router.put('/password', authenticate, async (req, res, next) => {
         }
 
         const newHash = await bcrypt.hash(newPassword, 12);
-        await db.collection<User>('users').updateOne(
+        await db.collection('users').updateOne(
             { _id: new ObjectId(userId) },
             { $set: { passwordHash: newHash, updatedAt: new Date() } }
         );

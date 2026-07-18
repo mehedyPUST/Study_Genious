@@ -30,7 +30,7 @@ interface RecommendationDoc {
 
 export async function getRecommendationsForUser(userId: string) {
     const db = await getDb();
-    const existing = await db.collection<RecommendationDoc>('recommendations').findOne({
+    const existing = await db.collection('recommendations').findOne({
         userId: new ObjectId(userId),
         expiresAt: { $gt: new Date() },
     });
@@ -38,15 +38,15 @@ export async function getRecommendationsForUser(userId: string) {
     if (existing) return existing.items;
 
     const interactions = await db.collection('interactions').find({ userId: new ObjectId(userId) }).toArray();
-    const viewedPlans = interactions.filter(i => i.action === 'view').map(i => i.planId);
+    const viewedPlans = interactions.filter((i: any) => i.action === 'view').map((i: any) => i.planId);
     const plans = await db.collection('plans').find({ _id: { $in: viewedPlans } }).project({ subject: 1, difficulty: 1 }).toArray();
-    const topics = [...new Set(plans.map(p => p.subject))];
-    const difficulties = plans.map(p => p.difficulty);
+    const topics: string[] = Array.from(new Set(plans.map((p: any) => p.subject as string)));
+    const difficulties: string[] = plans.map((p: any) => p.difficulty as string);
     const mostCommonDifficulty = difficulties.sort((a, b) =>
         difficulties.filter(v => v === a).length - difficulties.filter(v => v === b).length
     ).pop() || 'medium';
 
-    const previousRecs = await db.collection<RecommendationDoc>('recommendations')
+    const previousRecs = await db.collection('recommendations')
         .find({ userId: new ObjectId(userId) })
         .sort({ generatedAt: -1 })
         .limit(1)
@@ -55,7 +55,7 @@ export async function getRecommendationsForUser(userId: string) {
     let liked: string[] = [];
     let disliked: string[] = [];
     if (previousRecs.length > 0) {
-        previousRecs[0].items.forEach(item => {
+        previousRecs[0].items.forEach((item: any) => {
             if (item.feedback === true) liked.push(item.title);
             if (item.feedback === false) disliked.push(item.title);
         });
@@ -80,7 +80,7 @@ export async function getRecommendationsForUser(userId: string) {
         }
     }
 
-    await db.collection<RecommendationDoc>('recommendations').insertOne({
+    await db.collection('recommendations').insertOne({
         userId: new ObjectId(userId),
         items,
         generatedAt: new Date(),
@@ -128,7 +128,7 @@ function mockRecommendations(topics: string[], difficulty: string) {
 
 export async function submitFeedback(userId: string, recommendationTitle: string, liked: boolean) {
     const db = await getDb();
-    await db.collection<RecommendationDoc>('recommendations').updateOne(
+    await db.collection('recommendations').updateOne(
         {
             userId: new ObjectId(userId),
             'items.title': recommendationTitle,
