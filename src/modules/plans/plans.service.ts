@@ -117,14 +117,16 @@ export async function updatePlan(planId: string, userId: string, data: Partial<P
         { _id },
         { $set: { ...data, updatedAt: new Date() } },
         { returnDocument: 'after' }
-    );
+      );
+      const updatedDoc = updated?.value as Plan | null;
+      if (!updatedDoc) {
+        throw new AppError(500, 'Update failed', 'UPDATE_FAILED');
+      }
 
     // findOneAndUpdate returns the updated document directly (or null)
-    if (!updated) {
-        throw new AppError(500, 'Update failed', 'UPDATE_FAILED');
-    }
+    // handled above
 
-    return updated;
+    return updatedDoc;
 }
 
 export async function deletePlan(planId: string, userId: string) {
@@ -172,13 +174,7 @@ export async function getPlanReviews(planId: string, page: number = 1, limit: nu
     const db = await getDb();
     const filter = { planId: new ObjectId(planId) };
     const total = await db.collection<Review>('reviews').countDocuments(filter);
-    const reviews = await db
-        .collection<Review>('reviews')
-        .find(filter)
-        .sort({ createdAt: -1 })
-        .skip((page - 1) * limit)
-        .limit(limit)
-        .toArray();
+    const reviews = await db.collection<Review>('reviews').find(filter).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).toArray();
     return { reviews, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } };
 }
 
