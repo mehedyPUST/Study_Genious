@@ -8,6 +8,7 @@ import plansRoutes from './modules/plans/plans.routes';
 import aiRoutes from './modules/ai/ai.routes';
 import recommendationsRoutes from './modules/recommendations/recommendations.routes';
 import interactionsRoutes from './modules/interactions/interactions.routes';
+import profileRoutes from './modules/profile/profile.routes';
 
 export function createApp() {
     const app = express();
@@ -30,6 +31,7 @@ export function createApp() {
     app.use('/api/ai', aiRoutes);
     app.use('/api/recommendations', recommendationsRoutes);
     app.use('/api/interactions', interactionsRoutes);
+    app.use('/api/profile', profileRoutes);
 
     app.use(errorHandler);
     return app;
