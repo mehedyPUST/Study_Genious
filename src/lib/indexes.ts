@@ -6,5 +6,8 @@ export async function ensureIndexes() {
     await db.collection('plans').createIndex({ userId: 1 });
     await db.collection('plans').createIndex({ subject: 1, difficulty: 1 });
     await db.collection('reviews').createIndex({ planId: 1 });
-    console.log('✅ Indexes ensured');
+    console.log('✅ Indexes were ensured');
 }
+
+
+// mamar desh
