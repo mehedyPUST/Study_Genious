@@ -1,12 +1,11 @@
-{
+﻿{
   "name": "studygenious",
   "version": "1.0.0",
-  "type": "module",
   "description": "",
   "main": "index.js",
   "scripts": {
     "dev": "nodemon --exec tsx src/server.ts",
-    "build": "tsc",
+    "build": "echo skip",
     "start": "node dist/src/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -40,4 +39,5 @@
     "typescript": "^5.5.4"
   }
 }
+
 

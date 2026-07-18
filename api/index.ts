@@ -1,2 +1,3 @@
-import { createApp } from '../src/app';
-export default createApp();
+﻿const { default: serverless } = require('serverless-http');
+const { createApp } = require('../src/app');
+module.exports = serverless(createApp());
